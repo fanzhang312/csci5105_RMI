@@ -1,10 +1,10 @@
 public class Article {
-	private String type, originator, org, contents;
-	private final String[] category = new String[]{"Sports", "Lifestyle", "Entertainment", "Business", "Technology", "Science", "Politics", "Health"};
+	public String type, originator, org, contents;
+	public static final String[] category = new String[]{"Sports", "Lifestyle", "Entertainment", "Business", "Technology", "Science", "Politics", "Health"};
 	
-	public Article(int cate, String originator, String org, String contents){
-		if(cate>0 && cate<9)
-			type = category[cate-1];
+	public Article(String cate, String originator, String org, String contents){
+		if(searchCategory(cate))
+			type = cate;
 		else
 			type = null;
 		this.originator = originator;
@@ -23,5 +23,12 @@ public class Article {
 	}
 	public String toString(){
 		return "<"+ type +";"+ originator +";"+ org +";"+ contents+">";
+	}
+	public static boolean searchCategory(String cate){
+		for(String s : category){
+			if(s.equals(cate))
+				return true;
+		}
+		return false;
 	}
 }
