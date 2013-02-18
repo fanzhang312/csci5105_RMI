@@ -1,8 +1,8 @@
 public class Article {
 	public String type, originator, org, contents;
 	public static final String[] category = new String[]{"Sports", "Lifestyle", "Entertainment", "Business", "Technology", "Science", "Politics", "Health"};
-	
-	public Article(String cate, String originator, String org, String contents){
+	public ClientModel author;
+	public Article(String cate, String originator, String org, String contents, String ip, int port){
 		if(searchCategory(cate))
 			type = cate;
 		else
@@ -10,6 +10,7 @@ public class Article {
 		this.originator = originator;
 		this.org = org;
 		this.contents = contents;
+		author =new ClientModel(ip, port);
 	}
 	public boolean checkPublish(){
 		if(contents != null)

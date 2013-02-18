@@ -9,7 +9,7 @@ public class Client {
     public static void main(String[] args) {
 
 	try {
-	    Registry registry = LocateRegistry.getRegistry();
+	    Registry registry = LocateRegistry.getRegistry("10.0.0.8",1099);
 	    String[] serverStubs = registry.list();
 	    for(String stub : serverStubs){
 	    	System.out.println(stub);
@@ -27,6 +27,7 @@ public class Client {
 	     stub.Subscribe(hostIP, port, "Science");
 	     stub.Unsubscribe(hostIP, port, "Sports");
 	     stub.Unsubscribe(hostIP, port, "Sports");
+	     stub.Publish("Sports;someone;UMN;Hello World!", hostIP, port);
 	     System.out.println("Subscribe:" + subscribe);
 	     boolean leave = stub.Leave(hostIP, port);
 	     System.out.println("Leave Server: "+ leave);

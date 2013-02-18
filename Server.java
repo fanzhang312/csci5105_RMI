@@ -8,7 +8,8 @@ import java.util.Iterator;
 
 public class Server implements Communicate {
 	ArrayList<ClientModel> clientList = new ArrayList<ClientModel>();
-
+	ArrayList<Article> articleList = new ArrayList<Article>();
+	
 	protected Server() throws RemoteException {
 		super();
 		// TODO Auto-generated constructor stub
@@ -20,7 +21,12 @@ public class Server implements Communicate {
 			System.out.println("Subscribe: "+c.subscribeCategoryToString());
 		}
 	}
-	
+	// Print all articles 
+	public void printArticleList(){
+		for(Article a : articleList){
+			System.out.println("Article: "+a.toString());
+		}
+	}
 	// Check whether a client is already joined server or not
 	public int checkClient(String IP, int Port){
 		for (Iterator<ClientModel> it = clientList.iterator(); it.hasNext();){
@@ -61,6 +67,18 @@ public class Server implements Communicate {
 			return true;
 		}
 		return false;
+	}
+	
+	// Split article strings and save as Article model
+	public Article articleFactory(String articleString, String ip, int port){
+		Article item;
+		String[] items = articleString.split(";");
+		if(items.length==4){
+			item = new Article(items[0].trim(),items[1].trim(),items[2].trim(),items[3].trim(), ip, port);
+			return item;
+		}
+		System.out.println("Illegal Input Article Format, please follow: type;originator;org;contents");
+		return null;
 	}
 	@Override
 	public boolean JoinServer(String IP, int Port) throws RemoteException {
@@ -122,8 +140,14 @@ public class Server implements Communicate {
 	@Override
 	public boolean Publish(String Article, String IP, int Port)
 			throws RemoteException {
-		// TODO Auto-generated method stub
-		return false;
+		Article item = articleFactory(Article, IP, Port);
+		if(item.equals(null)){
+			return false;
+		}
+		articleList.add(item);
+		System.out.println("Publish success");
+		printArticleList();
+		return true;
 	}
 
 	@Override
