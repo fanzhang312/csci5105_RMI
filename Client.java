@@ -9,6 +9,7 @@ public class Client {
     public static void main(String[] args) {
 
 	try {
+		// locate the registry on 10.0.0.8
 	    Registry registry = LocateRegistry.getRegistry("10.0.0.8",1099);
 	    String[] serverStubs = registry.list();
 	    for(String stub : serverStubs){
@@ -29,6 +30,8 @@ public class Client {
 	     stub.Unsubscribe(hostIP, port, "Sports");
 	     stub.Publish("Sports;someone;UMN;Hello World!", hostIP, port);
 	     System.out.println("Subscribe:" + subscribe);
+	     PeriodicChecker check = new PeriodicChecker(stub);
+	     check.start();
 	     boolean leave = stub.Leave(hostIP, port);
 	     System.out.println("Leave Server: "+ leave);
 	} catch (Exception e) {

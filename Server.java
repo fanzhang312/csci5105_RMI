@@ -3,10 +3,13 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Server implements Communicate {
+//	public static int pingPort = 6060;
 	ArrayList<ClientModel> clientList = new ArrayList<ClientModel>();
 	ArrayList<Article> articleList = new ArrayList<Article>();
 	
@@ -157,9 +160,18 @@ public class Server implements Communicate {
 		return false;
 	}
 
+	// Ping() need to be called periodically to make sure connection status
 	@Override
 	public boolean Ping() throws RemoteException {
-		// TODO Auto-generated method stub
+		Registry regi = LocateRegistry.getRegistry();
+		String[] regiName = regi.list();
+		// As long as there is remote object reference, we say the server is running
+		if(regiName.length>0){
+			Date now = new Date();
+			Timestamp time = new Timestamp(now.getTime());
+			System.out.println("Server status: running at " + time);
+			return true;
+		}
 		return false;
 	}
 
