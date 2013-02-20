@@ -27,11 +27,14 @@ public class ClientModel {
 		this.portNumber = portNumber;
 	}
 	public boolean isSubscribe() {
+		if(subscribeCategory.size()>0)
+			this.subscribe = true;
+		else
+			this.subscribe = false;
 		return subscribe;
 	}
-	public void setSubscribe(boolean subscribe) {
-		this.subscribe = subscribe;
-	}
+
+	// client subscribe a type of articles
 	public boolean sub(String type){
 		// first check whether type is valid
 		if(Article.searchCategory(type)){
@@ -41,6 +44,7 @@ public class ClientModel {
 		}
 		return false;
 	}
+	// client unsubscribe a type of articles
 	public boolean unsub(String type){
 		if(Article.searchCategory(type)){
 			if(subscribeCategory.contains(type))

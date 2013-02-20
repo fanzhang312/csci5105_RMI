@@ -160,7 +160,7 @@ public class Server implements Communicate {
 		return false;
 	}
 
-	// Ping() need to be called periodically to make sure connection status
+	// Ping() need to be called periodically to make sure server status
 	@Override
 	public boolean Ping() throws RemoteException {
 		Registry regi = LocateRegistry.getRegistry();
@@ -174,6 +174,8 @@ public class Server implements Communicate {
 		}
 		return false;
 	}
+	
+	
 
 	public static void main(String args[]) {
 
