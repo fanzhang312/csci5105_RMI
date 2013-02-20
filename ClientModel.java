@@ -1,5 +1,14 @@
+/** 
+ * ClientModel is used to store client information on the server 
+ * a typical client should contain a IP address and a Port number
+ * We use IP and Port to distinguish different clients
+ * subscribeCategory is used to store the subscribe information for 
+ * each client. It stores the category of articles.
+ * 
+ * @author Fan Zhang, Zhiqi Chen
+ *
+ */
 import java.util.ArrayList;
-
 
 public class ClientModel {
 	private String ipAddress;

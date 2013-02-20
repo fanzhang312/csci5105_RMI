@@ -7,6 +7,7 @@ public class Article {
 	public ClientModel author;
 	// readerList used to mark the readers of this article
 	public ArrayList<ClientModel> readerList = new ArrayList<ClientModel>();
+	// construct an article with author information
 	public Article(String cate, String originator, String org, String contents, String ip, int port){
 		if(searchCategory(cate))
 			type = cate;
@@ -16,6 +17,16 @@ public class Article {
 		this.org = org;
 		this.contents = contents;
 		author =new ClientModel(ip, port);
+	}
+	// construct an article without author information
+	public Article(String cate, String originator, String org, String contents){
+		if(searchCategory(cate))
+			type = cate;
+		else
+			type = null;
+		this.originator = originator;
+		this.org = org;
+		this.contents = contents;
 	}
 	public boolean checkPublish(){
 		if(contents != null)
