@@ -13,14 +13,19 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class Server implements Communicate {
-	// public static int pingPort = 6060;
+public class Server extends Thread implements Communicate {
 	ArrayList<ClientModel> clientList = new ArrayList<ClientModel>();
 	ArrayList<Article> articleList = new ArrayList<Article>();
-
+	public static final int SERVER_PORT = 6060;
+	public String serverIP;
 	protected Server() throws RemoteException {
 		super();
-		// TODO Auto-generated constructor stub
+		try {
+			serverIP = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		start();
 	}
 
 	// Print all clients who currently joined server
@@ -232,7 +237,33 @@ public class Server implements Communicate {
 			e.printStackTrace();
 		}
 	}
-
+	/*
+	 * Register to the RegistryServer 
+	 */
+	public void communicateRegistryServer(String type){
+		String registerString = "";
+		if(type.equals("Register")){
+			registerString = "Register;RMI;"+this.serverIP+";"+SERVER_PORT+";server.Communicate;1099";
+		}else if(type.equals("Deregister")){
+			registerString = "Deregister;RMI;"+this.serverIP+";"+SERVER_PORT;
+		}
+		try{
+			byte message[] = new byte[Client.BUFFER_SIZE];
+			InetAddress registryServerAddress = InetAddress.getByName("128.101.35.147");
+			int regisryServerPort = 5105;
+			message = registerString.getBytes();
+			DatagramSocket socket = new DatagramSocket();
+			DatagramPacket packet = new DatagramPacket(message, message.length, registryServerAddress, regisryServerPort);
+			socket.send(packet);
+			System.out.println(type + " Success");
+		}catch (Exception e){
+			System.out.println(type + " Failed");
+			e.printStackTrace();
+		}
+	}
+	public void run(){
+		communicateRegistryServer("Register");
+	}
 	@Override
 	public boolean PublishServer(String Article, String IP, int Port)
 			throws RemoteException {
@@ -262,13 +293,11 @@ public class Server implements Communicate {
 			Server obj = new Server();
 			Communicate stub = (Communicate) UnicastRemoteObject.exportObject(
 					obj, 0);
-			InetAddress address = InetAddress.getLocalHost();
-			String hostIP = address.getHostAddress();
 			// Bind the remote object's stub in the registry
 			Registry registry = LocateRegistry.getRegistry();
 			registry.bind("server.Communicate", stub);
 
-			System.err.println("Server ready: " + hostIP);
+			System.err.println("Server ready: " + obj.serverIP);
 		} catch (Exception e) {
 			System.err.println("Server exception: " + e.toString());
 			e.printStackTrace();

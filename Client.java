@@ -29,12 +29,15 @@ public class Client extends Thread {
 	public PeriodicChecker pingCheck;
 	public ArrayList<Article> articleList = new ArrayList<Article>();
 
-	public Client(int port) {
+	/*
+	 * Create a client by enter the Server IP as args[0]
+	 */
+	public Client(String serverIP, int port) {
 		super("Client thread");
 		try {
 			// locate the registry on the server machine by enter the server's
 			// ip and port
-			registry = LocateRegistry.getRegistry("10.0.0.8", 1099);
+			registry = LocateRegistry.getRegistry(serverIP, 1099);
 			stub = (Communicate) registry.lookup("server.Communicate");
 			address = InetAddress.getLocalHost();
 			clientIP = address.getHostAddress();
@@ -122,7 +125,7 @@ public class Client extends Thread {
 
 	public static void main(String[] args) throws RemoteException {
 
-		Client client = new Client(2000);
+		Client client = new Client(args[0],2000);
 		client.clientJoin();
 		client.clientPing();
 		client.clientSubscribe("Sports");
@@ -131,7 +134,7 @@ public class Client extends Thread {
 		// client.clientLeave();
 		client.clientPublish("Sports;fan;UMN;Hello World");
 		client.clientPublish("Business;fan;UMN;Who moved my cheese");
-		Client client2 = new Client(2001);
+		Client client2 = new Client(args[0],2001);
 		client2.clientJoin();
 		client2.clientPing();
 		client2.clientSubscribe("Sports");
