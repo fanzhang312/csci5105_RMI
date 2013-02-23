@@ -51,6 +51,29 @@ public class Client extends Thread {
 		}
 
 	}
+	/*
+	 * Used for Server communicate with other servers. Make own server as client
+	 *  
+	 */
+	public Client(String serverIP, int port, String bindingName) {
+		super("Group Server thread");
+		try {
+			// locate the registry on the server machine by enter the server's
+			// ip and port
+			registry = LocateRegistry.getRegistry(serverIP, 1099);
+			stub = (Communicate) registry.lookup(bindingName);
+			address = InetAddress.getLocalHost();
+			clientIP = address.getHostAddress();
+			clientPort = port;
+			pingCheck = new PeriodicChecker(stub);
+			// Start the UDP server and keep it listening the incoming articles
+			start();
+		} catch (Exception e) {
+			System.err.println("Client exception: " + e.toString());
+			e.printStackTrace();
+		}
+
+	}
 
 	/*
 	 * Start UDP server to listen the incoming packets. Client should ALWAYS
@@ -105,7 +128,17 @@ public class Client extends Thread {
 		boolean leave = stub.Leave(clientIP, clientPort);
 		return leave;
 	}
-
+	
+	// JoinServer() have two fake parameters
+	public boolean serverJoin() throws RemoteException {
+		boolean join = stub.JoinServer(clientIP, clientPort);
+		return join;
+	}
+	// LeaveServer() have two fake parameters
+	public boolean serverLeave() throws RemoteException {
+		boolean leave = stub.LeaveServer(clientIP, clientPort);
+		return leave;
+	}
 	public boolean clientSubscribe(String articleType) throws RemoteException {
 		boolean subscribe = stub.Subscribe(clientIP, clientPort, articleType);
 		return subscribe;
@@ -126,24 +159,24 @@ public class Client extends Thread {
 		pingCheck.start();
 	}
 
-	public static void main(String[] args) throws RemoteException {
-
-		Client client = new Client(args[0], 2000);
-		client.clientJoin();
-		client.clientPing();
-		client.clientSubscribe("Sports");
-		client.clientSubscribe("Science");
-		client.clientUnsubscribe("Science");
-		client.stub.JoinServer(args[0], 2000);
-		// client.clientLeave();
-		client.clientPublish("Sports;fan;UMN;Hello World");
-		client.clientPublish("Business;fan;UMN;Who moved my cheese");
-		Client client2 = new Client(args[0], 2001);
-		client2.clientJoin();
-		client2.clientPing();
-		client2.clientSubscribe("Sports");
-		// client2.clientSubscribe("Science");
-		client2.clientUnsubscribe("Science");
-
-	}
+//	public static void main(String[] args) throws RemoteException {
+//
+//		Client client = new Client(args[0], 2000);
+//		client.clientJoin();
+//		client.clientPing();
+//		client.clientSubscribe("Sports");
+//		client.clientSubscribe("Science");
+//		client.clientUnsubscribe("Science");
+//		client.stub.JoinServer(args[0], 2000);
+//		// client.clientLeave();
+//		client.clientPublish("Sports;fan;UMN;Hello World");
+//		client.clientPublish("Business;fan;UMN;Who moved my cheese");
+//		Client client2 = new Client(args[0], 2001);
+//		client2.clientJoin();
+//		client2.clientPing();
+//		client2.clientSubscribe("Sports");
+//		// client2.clientSubscribe("Science");
+//		client2.clientUnsubscribe("Science");
+//
+//	}
 }

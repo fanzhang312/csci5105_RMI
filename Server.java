@@ -16,7 +16,7 @@ import java.util.Iterator;
 public class Server extends Thread implements Communicate {
 	ArrayList<ClientModel> clientList = new ArrayList<ClientModel>();
 	ArrayList<Article> articleList = new ArrayList<Article>();
-	ArrayList<ServerModel> serverList = new ArrayList<ServerModel>();
+	ArrayList<ServerModel> joinedServerList = new ArrayList<ServerModel>();
 	public static final int SERVER_PORT = 6060;
 	public String serverIP;
 	protected Server() throws RemoteException {
@@ -118,16 +118,45 @@ public class Server extends Thread implements Communicate {
 		return null;
 	}
 
+	/*
+	 * The String IP and int Port is useless under my design, but have to keep the interface the same with other people
+	 * Beacuse I am using localhost IP for the IP and use the static port number for server. 
+	 */
 	@Override
 	public boolean JoinServer(String IP, int Port) throws RemoteException {
-		GetList();
-		return false;
+		ArrayList<ServerModel> serverList = GetList();
+		if(serverList == null){
+			return false;
+		}
+		// Join every available servers
+		for(ServerModel server : serverList){
+			Client client = new Client(server.ip, SERVER_PORT ,server.bindingName);
+			if(client.clientJoin())
+				joinedServerList.add(server);
+				System.out.println("Server joined other server: "+server.toString());
+		}
+		return true;
 	}
-
+	
+	/*
+	 * The String IP and int Port are useless under my design.
+	 * 
+	 */
 	@Override
 	public boolean LeaveServer(String IP, int Port) throws RemoteException {
-		// TODO Auto-generated method stub
-		return false;
+		ArrayList<ServerModel> serverList = GetList();
+		if(serverList == null){
+			return false;
+		}
+		// Leave every available servers only if already joined
+		for(ServerModel server : serverList){
+			if(joinedServerList.contains(server)){
+				Client client = new Client(server.ip, SERVER_PORT ,server.bindingName);
+				client.clientLeave();
+				System.out.println("Server leaved other server: "+server.toString());
+			}
+		}
+		return true;
 	}
 
 	@Override
@@ -313,6 +342,10 @@ public class Server extends Thread implements Communicate {
 			packet = new DatagramPacket(message, message.length);
 			socket.receive(packet);
 			String lists = new String(packet.getData());
+			if(lists == null || lists.isEmpty() || lists.trim().equals("")){
+				System.out.println("No other servers registed at this time");
+				return null;
+			}
 			System.out.println("-------------List of Active Servers---------------");
 			System.out.println(lists);
 			return serverFactory(lists);
@@ -322,13 +355,20 @@ public class Server extends Thread implements Communicate {
 		return null;
 	}
 	public ArrayList<ServerModel> serverFactory(String lists){
-		if(lists.equals("")||lists.equals(null)){
+		ArrayList<ServerModel> serverList = new ArrayList<ServerModel>();
+		if(lists == null || lists.isEmpty()||lists.trim().equals("")){
 			System.out.println("No other servers registed at this time");
 			return null;
 		}
 		String[] serverString = lists.split(";");
 		int count = 0;
 		int length = serverString.length;
+		// length == 1 means "Your server did not register to registry-server."
+		if(length == 1){
+			return null;
+		}
+//		System.out.println(count+"-----"+length+": "+lists);
+		
 		while(count<length){
 			serverList.add(new ServerModel(serverString[count],serverString[count+1],serverString[count+2]));
 			count=count+3;

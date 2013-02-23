@@ -13,4 +13,7 @@ public class ServerModel {
 		this.bindingName = bindingName.trim();
 		this.port = Integer.parseInt(port.trim());
 	}
+	public String toString(){
+		return ip+";"+"bindingName"+";"+port;
+	}
 }
