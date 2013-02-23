@@ -16,6 +16,7 @@ import java.util.Iterator;
 public class Server extends Thread implements Communicate {
 	ArrayList<ClientModel> clientList = new ArrayList<ClientModel>();
 	ArrayList<Article> articleList = new ArrayList<Article>();
+	ArrayList<ServerModel> serverList = new ArrayList<ServerModel>();
 	public static final int SERVER_PORT = 6060;
 	public String serverIP;
 	protected Server() throws RemoteException {
@@ -119,7 +120,7 @@ public class Server extends Thread implements Communicate {
 
 	@Override
 	public boolean JoinServer(String IP, int Port) throws RemoteException {
-		// TODO Auto-generated method stub
+		GetList();
 		return false;
 	}
 
@@ -176,7 +177,9 @@ public class Server extends Thread implements Communicate {
 
 	/*
 	 * client publish article to server by using RMI. The server should
-	 * propagate the article to subscriptions
+	 * propagate the article to subscriptions by calling propagate().
+	 * Article will be saved on server side.
+	 * 
 	 */
 	@Override
 	public boolean Publish(String Article, String IP, int Port)
@@ -239,6 +242,9 @@ public class Server extends Thread implements Communicate {
 	}
 	/*
 	 * Register to the RegistryServer 
+	 * Server Name: dio.cs.umn.edu 
+	 * Server IP: 128.101.35.147
+	 * Server Port: 5105
 	 */
 	public void communicateRegistryServer(String type){
 		String registerString = "";
@@ -260,9 +266,74 @@ public class Server extends Thread implements Communicate {
 			System.out.println(type + " Failed");
 			e.printStackTrace();
 		}
+		// Listen the heartbeat message and send it back to RegistryServer
+		if(type.equals("Register")){
+			DatagramSocket socket = null;
+			byte buffer[] = new byte[Client.BUFFER_SIZE];
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+			try{
+				socket = new DatagramSocket(SERVER_PORT);
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+			while(true){
+				try{
+					socket.receive(packet);
+					System.out.println("RegistryServer Connection status: Good");
+					String heartbeatMsg = new String(packet.getData());
+					InetAddress address = packet.getAddress();
+					int port = packet.getPort();
+					buffer = null;
+					buffer = heartbeatMsg.getBytes();
+					packet = new DatagramPacket(buffer, buffer.length, address,
+							port);
+					socket.send(packet);
+				}catch (Exception e){
+					System.out.println("Hearbeat message communication failed");
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	public void run(){
 		communicateRegistryServer("Register");
+	}
+	
+	public ArrayList<ServerModel> GetList(){
+		String msg = "GetList;RMI;"+this.serverIP+";"+SERVER_PORT;
+		try{
+			byte message[] = new byte[Client.BUFFER_SIZE];
+			InetAddress registryServerAddress = InetAddress.getByName("128.101.35.147");
+			int regisryServerPort = 5105;
+			message = msg.getBytes();
+			DatagramSocket socket = new DatagramSocket();
+			DatagramPacket packet = new DatagramPacket(message, message.length, registryServerAddress, regisryServerPort);
+			socket.send(packet);
+			message = new byte[Client.BUFFER_SIZE];
+			packet = new DatagramPacket(message, message.length);
+			socket.receive(packet);
+			String lists = new String(packet.getData());
+			System.out.println("-------------List of Active Servers---------------");
+			System.out.println(lists);
+			return serverFactory(lists);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	public ArrayList<ServerModel> serverFactory(String lists){
+		if(lists.equals("")||lists.equals(null)){
+			System.out.println("No other servers registed at this time");
+			return null;
+		}
+		String[] serverString = lists.split(";");
+		int count = 0;
+		int length = serverString.length;
+		while(count<length){
+			serverList.add(new ServerModel(serverString[count],serverString[count+1],serverString[count+2]));
+			count=count+3;
+		}
+		return serverList;
 	}
 	@Override
 	public boolean PublishServer(String Article, String IP, int Port)
@@ -281,7 +352,8 @@ public class Server extends Thread implements Communicate {
 		if (regiName.length > 0) {
 			Date now = new Date();
 			Timestamp time = new Timestamp(now.getTime());
-			System.out.println("Server status: running at " + time);
+			// Print out the group server's status
+//			System.out.println("Server status: running at " + time);
 			return true;
 		}
 		return false;

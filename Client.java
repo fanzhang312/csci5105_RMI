@@ -52,7 +52,10 @@ public class Client extends Thread {
 
 	}
 
-	// Start UDP server to listen the incoming packets
+	/*
+	 * Start UDP server to listen the incoming packets. Client should ALWAYS
+	 * check if there is new subscribed articles propagated from group server.
+	 */
 	public void run() {
 		DatagramSocket socket = null;
 		try {
@@ -75,8 +78,8 @@ public class Client extends Thread {
 				articleList.add(article);
 				InetAddress address = packet.getAddress();
 				int port = packet.getPort();
-				System.out.println("Receive article: " + articleString + " from: "
-						+ address);
+				System.out.println("Receive article: " + articleString
+						+ " from: " + address);
 				// Send back Ack message
 				buffer = null;
 				String ackString = "Article received";
@@ -125,16 +128,17 @@ public class Client extends Thread {
 
 	public static void main(String[] args) throws RemoteException {
 
-		Client client = new Client(args[0],2000);
+		Client client = new Client(args[0], 2000);
 		client.clientJoin();
 		client.clientPing();
 		client.clientSubscribe("Sports");
 		client.clientSubscribe("Science");
 		client.clientUnsubscribe("Science");
+		client.stub.JoinServer(args[0], 2000);
 		// client.clientLeave();
 		client.clientPublish("Sports;fan;UMN;Hello World");
 		client.clientPublish("Business;fan;UMN;Who moved my cheese");
-		Client client2 = new Client(args[0],2001);
+		Client client2 = new Client(args[0], 2001);
 		client2.clientJoin();
 		client2.clientPing();
 		client2.clientSubscribe("Sports");
