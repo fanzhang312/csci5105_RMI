@@ -11,6 +11,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -61,16 +62,19 @@ public class Client extends Thread {
 			// locate the registry on the server machine by enter the server's
 			// ip and port
 			registry = LocateRegistry.getRegistry(serverIP, 1099);
-			stub = (Communicate) registry.lookup(bindingName);
+			System.out.println("-------Registry-------"+registry);
+			registry.rebind(bindingName, stub);
+			System.out.println("-------Stub-------"+stub);
+//			stub = (Communicate) registry.lookup(bindingName);
 			address = InetAddress.getLocalHost();
 			clientIP = address.getHostAddress();
 			clientPort = port;
-			pingCheck = new PeriodicChecker(stub);
+//			pingCheck = new PeriodicChecker(stub);
 			// Start the UDP server and keep it listening the incoming articles
 			start();
 		} catch (Exception e) {
-			System.err.println("Client exception: " + e.toString());
-			e.printStackTrace();
+			System.err.println("Unable to binding to other server: " + e.toString());
+//			e.printStackTrace();
 		}
 
 	}
@@ -119,8 +123,17 @@ public class Client extends Thread {
 		}
 	}
 
-	public boolean clientJoin() throws RemoteException {
-		boolean join = stub.Join(clientIP, clientPort);
+	public boolean clientJoin() {
+		boolean join = false;
+		try {
+			if(stub == null){
+				System.out.println("Create Remote object failed, can't join other server");
+				return false;
+			}
+			join = stub.Join(clientIP, clientPort);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
 		return join;
 	}
 

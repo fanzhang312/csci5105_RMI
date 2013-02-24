@@ -13,7 +13,7 @@ public class ClientTestCase {
 		client.clientSubscribe("Sports");
 		client.clientSubscribe("Science");
 		client.clientUnsubscribe("Science");
-		client.serverJoin();
+//		client.serverJoin();
 		// client.clientLeave();
 		client.clientPublish("Sports;fan;UMN;Hello World");
 		client.clientPublish("Business;fan;UMN;Who moved my cheese");
