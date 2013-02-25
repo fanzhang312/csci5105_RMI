@@ -1,9 +1,13 @@
+/**
+ * PeriodicChecker use a thread to periodically call the ping() and note the current time
+ * interval time is set to be 60 seconds 
+ * 
+ * @author Fan Zhang, Zhiqi Chen
+ */
 import java.rmi.RemoteException;
 import java.sql.Timestamp;
 import java.util.Date;
 
-// PeriodicChecker use a thread to periodically call the ping() and note the current time
-// interval time is set to be 5 seconds 
 public class PeriodicChecker extends Thread {
 	Communicate stub;
 

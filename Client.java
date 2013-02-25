@@ -1,9 +1,8 @@
 /**
  * Client class is used to create client communicate to server by RMI
+ * Client class also use a thread to listen incoming UDP message
  * 
  * @author Fan Zhang, zhiqi Chen
- * @param 
- * @param
  * 
  */
 import java.io.IOException;
@@ -32,7 +31,8 @@ public class Client extends Thread {
 	public ArrayList<Article> articleList = new ArrayList<Article>();
 
 	/*
-	 * Create a client by enter the Server IP as args[0]
+	 * Create a client by enter the Server IP, the Server IP is used to connect to server.
+	 * Client let user define a port used for UDP communication. 
 	 */
 	public Client(String serverIP, int port) {
 		super("Client thread");
@@ -58,6 +58,7 @@ public class Client extends Thread {
 	/*
 	 * Used for Server communicate with other servers. Make own server as client
 	 *  
+	 *  WE HAVE PROBLEM TO CONNECT OTHER IN THE CS LABS, THE rebind() FUNCTION WILL THROW ERROES
 	 */
 	public Client(String serverIP, int port, String bindingName) {
 		super("Group Server thread");

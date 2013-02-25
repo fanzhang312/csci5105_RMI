@@ -1,13 +1,14 @@
+/**
+ * Test Case for the client side. Provide a command interface for user to call RMI methods.
+ * 
+ * @author Fan Zhang, Zhiqi Chen
+ */
+
 import java.rmi.RemoteException;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/*
- * Test Case for the client side
- * 
- * @author Fan Zhang, Zhiqi Chen
- */
 public class ClientTestCase {
 	public static Client client;
 	/*
@@ -41,7 +42,7 @@ public class ClientTestCase {
 	}
 	/*
 	 * testInput try to decide whether the input is legal or not
-	 * based on two input situate: yes or no; 1,2,3,4,5....
+	 * based on two input situate: yes or no; 1,2,3,4,5,6...
 	 */
 	public static boolean testInput(String input, String testCase) {
 		if (input == null || input.isEmpty())
@@ -105,6 +106,7 @@ public class ClientTestCase {
 
 	}
 	
+	// Print a menu for client to choose
 	public static void clientMenu() throws RemoteException{
 		System.out.println("\nPlease select following options");
 		System.out.println("1. Join");

@@ -1,3 +1,10 @@
+/**
+ * Article class is designed for articles. It's more convenient to manipulate articles in object than in String.
+ * Many useful methods are designed in Article class. 
+ * 
+ *  * @author Fan Zhang, zhiqi Chen
+ *  
+ */
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

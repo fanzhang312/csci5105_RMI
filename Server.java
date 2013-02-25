@@ -1,3 +1,12 @@
+/**
+ * Server class implements Communicate interface. 
+ * 
+ * Once the server is running, it use a thread to call commnicateRegistryServer() 
+ * and get registed and keep receiving and sending heartbeat message.
+ * 
+ * @author Fan Zhang, Zhiqi Chen
+ *
+ */
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -94,9 +103,9 @@ public class Server extends Thread implements Communicate {
 	public Article articleFactory(String articleString, String ip, int port) {
 		Article item;
 		String[] items = articleString.split(";");
-//		for(String s : items){
-//			System.out.println(s);
-//		}
+		// for(String s : items){
+		// System.out.println(s);
+		// }
 		if (items.length == 4) {
 			item = new Article(items[0].trim(), items[1].trim(),
 					items[2].trim(), items[3].trim(), ip, port);
@@ -112,9 +121,9 @@ public class Server extends Thread implements Communicate {
 	public static Article articleFactory(String articleString) {
 		Article item;
 		String[] items = articleString.split(";");
-//		for(String s : items){
-//			System.out.println(s);
-//		}
+		// for(String s : items){
+		// System.out.println(s);
+		// }
 		if (items.length == 4) {
 			item = new Article(items[0].trim(), items[1].trim(),
 					items[2].trim(), items[3].trim());
@@ -224,44 +233,47 @@ public class Server extends Thread implements Communicate {
 	@Override
 	public boolean Publish(String Article, String IP, int Port)
 			throws RemoteException {
-		if(Article==null || Article.isEmpty()){
+		if (Article == null || Article.isEmpty()) {
 			return false;
 		}
-		System.out.println("Server receive artilce:"+ Article);
+		System.out.println("Server receive artilce:" + Article);
 		Article item = articleFactory(Article, IP, Port);
 		// If the format is illegal, item will be null
 		if (item.equals(null)) {
 			return false;
 		}
-		if(sameArticle(item)){
+		if (sameArticle(item)) {
 			System.out.println("Same article is not allowed");
 			return false;
 		}
 		articleList.add(item);
-//		ArrayList<ServerModel> serverList = GetList();
-//		if (serverList != null) {
-//			// Publish the article to other active servers
-			PublishServer(Article, IP, Port);
-//		}
-		
+		// ArrayList<ServerModel> serverList = GetList();
+		// if (serverList != null) {
+		// // Publish the article to other active servers
+		PublishServer(Article, IP, Port);
+		// }
+
 		// Publish the article to clients who subscribed.
-		if(clientList != null){
-			if(propagate(item, clientList))
-				System.out.println("Article is propagated to all subscribed clients");
+		if (clientList != null) {
+			if (propagate(item, clientList))
+				System.out
+						.println("Article is propagated to all subscribed clients");
 		}
 		System.out.println("Publish success");
 		printArticleList();
 		return true;
 	}
-	public boolean sameArticle(Article article){
-		for(Article a : articleList){
-			if(a.toString().equals(article.toString())){
+
+	public boolean sameArticle(Article article) {
+		for (Article a : articleList) {
+			if (a.toString().equals(article.toString())) {
 				System.out.println("find same article on server");
 				return true;
 			}
 		}
 		return false;
 	}
+
 	/*
 	 * propagate method focus on assign each article to its subscriptions
 	 */
@@ -283,9 +295,7 @@ public class Server extends Thread implements Communicate {
 	 * propagate method send article to other group server, don't care about the
 	 * subscriptions
 	 */
-	public void propagateServer(Article article,
-			ArrayList<ClientModel> clients) {
-		System.out.println("Enter propagateServer()"+clients.size());
+	public void propagateServer(Article article, ArrayList<ClientModel> clients) {
 		for (ClientModel client : clients) {
 			sendArticleToServer(article.toString(), client);
 		}
@@ -320,6 +330,7 @@ public class Server extends Thread implements Communicate {
 			e.printStackTrace();
 		}
 	}
+
 	/*
 	 * sendArticle method use UDP send out article to client
 	 */
@@ -341,6 +352,7 @@ public class Server extends Thread implements Communicate {
 			e.printStackTrace();
 		}
 	}
+
 	/*
 	 * Register to the RegistryServer Server Name: dio.cs.umn.edu Server IP:
 	 * 128.101.35.147 Server Port: 5105
