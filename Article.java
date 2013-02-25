@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Article {
 	public String type, originator, org, contents;
@@ -50,10 +52,56 @@ public class Article {
 		return "<"+ type +";"+ originator +";"+ org +";"+ contents+">";
 	}
 	public static boolean searchCategory(String cate){
+		if(cate==null||cate.isEmpty()){
+			return false;
+		}
 		for(String s : category){
 			if(s.equals(cate))
 				return true;
 		}
+		return false;
+	}
+	// Check whether an article is OK for publish
+	public static boolean checkArticle(String article){
+		if(!checkSemicolon(article)){
+			System.out.println("semicolon problem");
+			return false;
+		}
+			
+		String[] fields = article.split(";");
+		if(fields.length!=4){
+			System.out.println("Format not accept");
+			return false;
+		}
+		if(fields[0]==null||fields[0].isEmpty()){
+			// No content is not allowed to publish
+			if(fields[3]==null || fields[3].isEmpty()){
+				System.out.println("content can't be empty");
+				return false;
+			}
+			return true;
+		}
+		// if has category, then it must match given categroy
+		if(!searchCategory(fields[0])){
+			System.out.println("category doesn't match");
+			return false;
+		}
+		// No content is not allowed to publish
+		if(fields[3]==null || fields[3].isEmpty()){
+			System.out.println(fields[3]);
+			return false;
+		}
+		return true;
+	}
+	// An article must contains 3 semicolons
+	public static boolean checkSemicolon(String article){
+		Pattern pattern = Pattern.compile(";");
+		Matcher matcher = pattern.matcher(article);
+		int count = 0;
+		while( matcher.find())
+			count++;
+		if(count==3)
+			return true;
 		return false;
 	}
 }

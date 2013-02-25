@@ -18,8 +18,8 @@ public class PeriodicChecker extends Thread {
 				boolean status = stub.Ping();
 				Date date = new Date();
 				Timestamp time = new Timestamp(date.getTime());
-				System.out.println("Server is alive: "+status+" at "+ time);
-				Thread.sleep(5000);
+				System.out.println("\nServer is alive: "+status+" at "+ time + " Next ping will be sent out in 1 minute");
+				Thread.sleep(60000); // Delay 60s
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {

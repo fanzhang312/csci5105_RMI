@@ -94,13 +94,16 @@ public class Server extends Thread implements Communicate {
 	public Article articleFactory(String articleString, String ip, int port) {
 		Article item;
 		String[] items = articleString.split(";");
+//		for(String s : items){
+//			System.out.println(s);
+//		}
 		if (items.length == 4) {
 			item = new Article(items[0].trim(), items[1].trim(),
 					items[2].trim(), items[3].trim(), ip, port);
 			return item;
 		}
 		System.out
-				.println("Illegal Input Article Format, please follow: type;originator;org;contents");
+				.println("Illegal Input Article Format, Please follow: type;originator;org;contents");
 		return null;
 	}
 
@@ -109,6 +112,9 @@ public class Server extends Thread implements Communicate {
 	public static Article articleFactory(String articleString) {
 		Article item;
 		String[] items = articleString.split(";");
+//		for(String s : items){
+//			System.out.println(s);
+//		}
 		if (items.length == 4) {
 			item = new Article(items[0].trim(), items[1].trim(),
 					items[2].trim(), items[3].trim());
@@ -218,21 +224,44 @@ public class Server extends Thread implements Communicate {
 	@Override
 	public boolean Publish(String Article, String IP, int Port)
 			throws RemoteException {
+		if(Article==null || Article.isEmpty()){
+			return false;
+		}
+		System.out.println("Server receive artilce:"+ Article);
 		Article item = articleFactory(Article, IP, Port);
 		// If the format is illegal, item will be null
 		if (item.equals(null)) {
 			return false;
 		}
+		if(sameArticle(item)){
+			System.out.println("Same article is not allowed");
+			return false;
+		}
 		articleList.add(item);
-		// Publish the article to other active servers
-		PublishServer(Article, IP, Port);
+//		ArrayList<ServerModel> serverList = GetList();
+//		if (serverList != null) {
+//			// Publish the article to other active servers
+			PublishServer(Article, IP, Port);
+//		}
+		
 		// Publish the article to clients who subscribed.
-		propagate(item, clientList);
+		if(clientList != null){
+			if(propagate(item, clientList))
+				System.out.println("Article is propagated to all subscribed clients");
+		}
 		System.out.println("Publish success");
 		printArticleList();
 		return true;
 	}
-
+	public boolean sameArticle(Article article){
+		for(Article a : articleList){
+			if(a.toString().equals(article.toString())){
+				System.out.println("find same article on server");
+				return true;
+			}
+		}
+		return false;
+	}
 	/*
 	 * propagate method focus on assign each article to its subscriptions
 	 */
@@ -254,13 +283,12 @@ public class Server extends Thread implements Communicate {
 	 * propagate method send article to other group server, don't care about the
 	 * subscriptions
 	 */
-	public boolean propagateServer(Article article,
+	public void propagateServer(Article article,
 			ArrayList<ClientModel> clients) {
+		System.out.println("Enter propagateServer()"+clients.size());
 		for (ClientModel client : clients) {
-			sendArticle(article.toString(), client);
-			return true;
+			sendArticleToServer(article.toString(), client);
 		}
-		return false;
 	}
 
 	/*
@@ -292,7 +320,27 @@ public class Server extends Thread implements Communicate {
 			e.printStackTrace();
 		}
 	}
-
+	/*
+	 * sendArticle method use UDP send out article to client
+	 */
+	public void sendArticleToServer(String article, ClientModel client) {
+		try {
+			byte message[] = new byte[Client.BUFFER_SIZE];
+			String msgString = article;
+			message = msgString.getBytes();
+			String host = client.getIpAddress();
+			InetAddress address = InetAddress.getByName(host);
+			// Server send article to client
+			DatagramSocket socket = new DatagramSocket();
+			DatagramPacket packet = new DatagramPacket(message, message.length,
+					address, client.getPortNumber());
+			socket.send(packet);
+			System.out.println("Article:" + article + " Sent to:" + host + ":"
+					+ client.getPortNumber());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	/*
 	 * Register to the RegistryServer Server Name: dio.cs.umn.edu Server IP:
 	 * 128.101.35.147 Server Port: 5105
@@ -429,6 +477,7 @@ public class Server extends Thread implements Communicate {
 			throws RemoteException {
 		ArrayList<ServerModel> serverList = GetList();
 		if (serverList == null) {
+			System.out.println("No other active servers right now");
 			return false;
 		}
 		Article item = articleFactory(Article, IP, Port);
@@ -466,7 +515,7 @@ public class Server extends Thread implements Communicate {
 			Date now = new Date();
 			Timestamp time = new Timestamp(now.getTime());
 			// Print out the group server's status
-			// System.out.println("Server status: running at " + time);
+			System.out.println("Server status: running at " + time);
 			return true;
 		}
 		return false;

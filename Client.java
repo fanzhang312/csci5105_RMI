@@ -19,6 +19,7 @@ import java.util.ArrayList;
 
 public class Client extends Thread {
 	public static final int BUFFER_SIZE = 1024;
+	public static boolean clientCreated = false;
 	public Registry registry;
 	public Communicate stub;
 	public InetAddress address;
@@ -46,9 +47,11 @@ public class Client extends Thread {
 			pingCheck = new PeriodicChecker(stub);
 			// Start the UDP server and keep it listening the incoming articles
 			start();
+			clientCreated = true;
 		} catch (Exception e) {
-			System.err.println("Client exception: " + e.toString());
-			e.printStackTrace();
+			clientCreated = false;
+			System.err.println("Cannot connect to server. Please confirm the server's IP is entered correctly");
+//			e.printStackTrace();
 		}
 
 	}
@@ -131,6 +134,8 @@ public class Client extends Thread {
 				return false;
 			}
 			join = stub.Join(clientIP, clientPort);
+			if(join)
+				System.out.println("Client joined server success");
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -139,6 +144,8 @@ public class Client extends Thread {
 
 	public boolean clientLeave() throws RemoteException {
 		boolean leave = stub.Leave(clientIP, clientPort);
+		if(leave)
+			System.out.println("Client leave server success");
 		return leave;
 	}
 	
@@ -153,6 +160,10 @@ public class Client extends Thread {
 		return leave;
 	}
 	public boolean clientSubscribe(String articleType) throws RemoteException {
+		if(articleType==null || articleType.isEmpty()){
+			System.out.print("Warning: Type is empty, please check the input");
+			return false;
+		}
 		boolean subscribe = stub.Subscribe(clientIP, clientPort, articleType);
 		return subscribe;
 	}
@@ -164,7 +175,18 @@ public class Client extends Thread {
 	}
 
 	public boolean clientPublish(String article) throws RemoteException {
+		if(article==null || article.isEmpty()){
+			System.out.print("Warning: Article is empty, please check the input");
+			return false;
+		}
+		if(!Article.checkArticle(article)){
+			System.out.print("Warning: Article format is illegal, please check the input");
+			return false;
+		}
+			
 		boolean publish = stub.Publish(article, clientIP, clientPort);
+		if(publish)
+			System.out.println("client publish success");
 		return publish;
 	}
 
@@ -172,24 +194,4 @@ public class Client extends Thread {
 		pingCheck.start();
 	}
 
-//	public static void main(String[] args) throws RemoteException {
-//
-//		Client client = new Client(args[0], 2000);
-//		client.clientJoin();
-//		client.clientPing();
-//		client.clientSubscribe("Sports");
-//		client.clientSubscribe("Science");
-//		client.clientUnsubscribe("Science");
-//		client.stub.JoinServer(args[0], 2000);
-//		// client.clientLeave();
-//		client.clientPublish("Sports;fan;UMN;Hello World");
-//		client.clientPublish("Business;fan;UMN;Who moved my cheese");
-//		Client client2 = new Client(args[0], 2001);
-//		client2.clientJoin();
-//		client2.clientPing();
-//		client2.clientSubscribe("Sports");
-//		// client2.clientSubscribe("Science");
-//		client2.clientUnsubscribe("Science");
-//
-//	}
 }
