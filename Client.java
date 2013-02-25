@@ -1,9 +1,8 @@
 /**
  * Client class is used to create client communicate to server by RMI
+ * Client class also use a thread to listen incoming UDP message
  * 
  * @author Fan Zhang, zhiqi Chen
- * @param 
- * @param
  * 
  */
 import java.io.IOException;
@@ -11,6 +10,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 
 public class Client extends Thread {
 	public static final int BUFFER_SIZE = 1024;
+	public static boolean clientCreated = false;
 	public Registry registry;
 	public Communicate stub;
 	public InetAddress address;
@@ -30,7 +31,8 @@ public class Client extends Thread {
 	public ArrayList<Article> articleList = new ArrayList<Article>();
 
 	/*
-	 * Create a client by enter the Server IP as args[0]
+	 * Create a client by enter the Server IP, the Server IP is used to connect to server.
+	 * Client let user define a port used for UDP communication. 
 	 */
 	public Client(String serverIP, int port) {
 		super("Client thread");
@@ -45,14 +47,46 @@ public class Client extends Thread {
 			pingCheck = new PeriodicChecker(stub);
 			// Start the UDP server and keep it listening the incoming articles
 			start();
+			clientCreated = true;
 		} catch (Exception e) {
-			System.err.println("Client exception: " + e.toString());
-			e.printStackTrace();
+			clientCreated = false;
+			System.err.println("Cannot connect to server. Please confirm the server's IP is entered correctly");
+//			e.printStackTrace();
+		}
+
+	}
+	/*
+	 * Used for Server communicate with other servers. Make own server as client
+	 *  
+	 *  WE HAVE PROBLEM TO CONNECT OTHER IN THE CS LABS, THE rebind() FUNCTION WILL THROW ERROES
+	 */
+	public Client(String serverIP, int port, String bindingName) {
+		super("Group Server thread");
+		try {
+			// locate the registry on the server machine by enter the server's
+			// ip and port
+			registry = LocateRegistry.getRegistry(serverIP, 1099);
+			System.out.println("-------Registry-------"+registry);
+			registry.rebind(bindingName, stub);
+			System.out.println("-------Stub-------"+stub);
+//			stub = (Communicate) registry.lookup(bindingName);
+			address = InetAddress.getLocalHost();
+			clientIP = address.getHostAddress();
+			clientPort = port;
+//			pingCheck = new PeriodicChecker(stub);
+			// Start the UDP server and keep it listening the incoming articles
+			start();
+		} catch (Exception e) {
+			System.err.println("Unable to binding to other server: " + e.toString());
+//			e.printStackTrace();
 		}
 
 	}
 
-	// Start UDP server to listen the incoming packets
+	/*
+	 * Start UDP server to listen the incoming packets. Client should ALWAYS
+	 * check if there is new subscribed articles propagated from group server.
+	 */
 	public void run() {
 		DatagramSocket socket = null;
 		try {
@@ -75,8 +109,8 @@ public class Client extends Thread {
 				articleList.add(article);
 				InetAddress address = packet.getAddress();
 				int port = packet.getPort();
-				System.out.println("Receive article: " + articleString + " from: "
-						+ address);
+				System.out.println("Receive article: " + articleString
+						+ " from: " + address);
 				// Send back Ack message
 				buffer = null;
 				String ackString = "Article received";
@@ -93,17 +127,44 @@ public class Client extends Thread {
 		}
 	}
 
-	public boolean clientJoin() throws RemoteException {
-		boolean join = stub.Join(clientIP, clientPort);
+	public boolean clientJoin() {
+		boolean join = false;
+		try {
+			if(stub == null){
+				System.out.println("Create Remote object failed, can't join other server");
+				return false;
+			}
+			join = stub.Join(clientIP, clientPort);
+			if(join)
+				System.out.println("Client joined server success");
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
 		return join;
 	}
 
 	public boolean clientLeave() throws RemoteException {
 		boolean leave = stub.Leave(clientIP, clientPort);
+		if(leave)
+			System.out.println("Client leave server success");
 		return leave;
 	}
-
+	
+	// JoinServer() have two fake parameters
+	public boolean serverJoin() throws RemoteException {
+		boolean join = stub.JoinServer(clientIP, clientPort);
+		return join;
+	}
+	// LeaveServer() have two fake parameters
+	public boolean serverLeave() throws RemoteException {
+		boolean leave = stub.LeaveServer(clientIP, clientPort);
+		return leave;
+	}
 	public boolean clientSubscribe(String articleType) throws RemoteException {
+		if(articleType==null || articleType.isEmpty()){
+			System.out.print("Warning: Type is empty, please check the input");
+			return false;
+		}
 		boolean subscribe = stub.Subscribe(clientIP, clientPort, articleType);
 		return subscribe;
 	}
@@ -115,7 +176,18 @@ public class Client extends Thread {
 	}
 
 	public boolean clientPublish(String article) throws RemoteException {
+		if(article==null || article.isEmpty()){
+			System.out.print("Warning: Article is empty, please check the input");
+			return false;
+		}
+		if(!Article.checkArticle(article)){
+			System.out.print("Warning: Article format is illegal, please check the input");
+			return false;
+		}
+			
 		boolean publish = stub.Publish(article, clientIP, clientPort);
+		if(publish)
+			System.out.println("client publish success");
 		return publish;
 	}
 
@@ -123,23 +195,4 @@ public class Client extends Thread {
 		pingCheck.start();
 	}
 
-	public static void main(String[] args) throws RemoteException {
-
-		Client client = new Client(args[0],2000);
-		client.clientJoin();
-		client.clientPing();
-		client.clientSubscribe("Sports");
-		client.clientSubscribe("Science");
-		client.clientUnsubscribe("Science");
-		// client.clientLeave();
-		client.clientPublish("Sports;fan;UMN;Hello World");
-		client.clientPublish("Business;fan;UMN;Who moved my cheese");
-		Client client2 = new Client(args[0],2001);
-		client2.clientJoin();
-		client2.clientPing();
-		client2.clientSubscribe("Sports");
-		// client2.clientSubscribe("Science");
-		client2.clientUnsubscribe("Science");
-
-	}
 }
