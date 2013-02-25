@@ -115,11 +115,13 @@ public class ClientTestCase {
 		System.out.println("4. Unsubscribe");
 		System.out.println("5. Publish");
 		System.out.println("6. Ping");
+		System.out.println("7. JoinServer");
+		System.out.println("8. LeaveServer");
 		System.out.print("Command: ");
 		Scanner option = new Scanner(System.in);
 		String selection = option.nextLine().trim();
-		if(!testInput(selection,"number")||Integer.parseInt(selection)>6||Integer.parseInt(selection)<1){
-			System.out.println("\n Invalid input!Enter a number bewteen 1 to 6");
+		if(!testInput(selection,"number")||Integer.parseInt(selection)>8||Integer.parseInt(selection)<1){
+			System.out.println("\n Invalid input!Enter a number bewteen 1 to 8");
 			return;
 		}
 			
@@ -163,6 +165,8 @@ public class ClientTestCase {
 			
 		}break;
 		case 6: client.clientPing(); break;
+		case 7: client.serverJoin(); break;
+		case 8: client.serverLeave(); break;
 		default: break;
 		}
 		
